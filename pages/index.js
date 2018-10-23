@@ -17,7 +17,8 @@ export default class Index extends React.Component {
     super(props);
     this.state = {
       url: '',
-      method: '',
+      method: 'get',
+      requestBody: '',
       header: {},
       body: {}
     };
@@ -29,14 +30,31 @@ export default class Index extends React.Component {
     this.setState({url});
   };
 
+  changeMethod = (event) => {
+    let method = event.target.value;
+    this.setState({method});
+    console.log(method);
+  }
+
+  changeBody = (event) => {
+    let requestBody = event.target.value;
+    this.setState({requestBody});
+  }
+
   callAPI = (event) => {
     event.preventDefault();
-    superagent.get(this.state.url)
+    try {
+      let body = this.state.requestBody && JSON.parse(this.state.requestBody);
+      superagent(this.state.method, this.state.url)
+      .send(body)
       .then( response => {
         let body = response.body;
         this.setState({body});
         console.log(this.state);
       })
+    } catch(e) { console.error('Invalid JSON Body', this.state.requestBody); }
+
+
   };
 
 
@@ -45,7 +63,18 @@ export default class Index extends React.Component {
     return (
       <section>
         <form onSubmit={this.callAPI}>
+          <select name="method" onChange={this.changeMethod}>
+            <option value="get">GET</option>
+            <option value="post">POST</option>
+            <option value="put">PUT</option>
+            <option value="patch">PATCH</option>
+            <option value="delete">DELETE</option>
+          </select>
           <input placeholder="URL" onChange={this.changeURL}/>
+          <button>GO</button>
+          <div>
+            <textarea name="requestBody" onChange={this.changeBody}></textarea>
+          </div>
         </form>
         <ReactJson src={this.state.body} />
       </section>
